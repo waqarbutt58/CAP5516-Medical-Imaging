@@ -28,11 +28,10 @@ DEVICE        = "cuda" if torch.cuda.is_available() else "cpu"
 def install_diffusers():
     """Ensure diffusers & accelerate are installed."""
     import subprocess
-    pkgs = ["diffusers==0.27.2", "transformers>=4.38.0", "accelerate>=0.27.0",
-            "safetensors", "invisible-watermark"]
+    pkgs = ["diffusers", "transformers", "accelerate", "safetensors"]
     for pkg in pkgs:
         try:
-            __import__(pkg.split("==")[0].replace("-", "_"))
+            __import__(pkg.replace("-", "_"))
         except ImportError:
             print(f"Installing {pkg}...")
             subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
