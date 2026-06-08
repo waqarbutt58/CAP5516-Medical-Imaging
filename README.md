@@ -1,9 +1,13 @@
-# CAP5516 – Multi-task Medical Image Analysis
+# Multi-task Medical Image Analysis
 ### with Diffusion-Based Synthetic Augmentation
 
-> **Course:** CAP5516 – Medical Image Computing, Spring 2025
-> **Institution:** University of Central Florida (UCF) – CRCV
-> **Dataset:** Breast Ultrasound Images (BUSI) — 798 images, 3 classes
+| | |
+|---|---|
+| **Course** | Medical Image Computing |
+| **Student** | Waqar Rauf Butt |
+| **Roll No** | PHDAIF25M003 |
+| **Supervisor** | Dr. Muhammad Farooq |
+| **Dataset** | Breast Ultrasound Images (BUSI) — 798 images, 3 classes |
 
 ---
 
@@ -292,4 +296,6 @@ Synthetic images added at 5 ratios on top of the real training set:
 
 ---
 
-*CAP5516 – Medical Image Computing | Spring 2025 | University of Central Florida – CRCV*
+---
+
+**Student:** Waqar Rauf Butt &nbsp;|&nbsp; **Roll No:** PHDAIF25M003 &nbsp;|&nbsp; **Supervisor:** Dr. Muhammad Farooq &nbsp;|&nbsp; Medical Image Computing

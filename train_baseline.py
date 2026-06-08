@@ -1,5 +1,16 @@
 """
-Train U-Net segmentation and ResNet-50 classifier baselines.
+================================================
+  Medical Image Computing — Self Study Project
+================================================
+  Title      : Multi-task Medical Image Analysis with
+               Diffusion-Based Synthetic Augmentation
+  Student    : Waqar Rauf Butt
+  Roll No    : PHDAIF25M003
+  Supervisor : Dr. Muhammad Farooq
+  Course     : Medical Image Computing
+================================================
+
+Stage 2: Train U-Net segmentation and ResNet-50 classifier baselines.
 Saves checkpoints to models/ and training curves to results/.
 
 Usage:

@@ -1,4 +1,15 @@
 """
+================================================
+  Medical Image Computing — Self Study Project
+================================================
+  Title      : Multi-task Medical Image Analysis with
+               Diffusion-Based Synthetic Augmentation
+  Student    : Waqar Rauf Butt
+  Roll No    : PHDAIF25M003
+  Supervisor : Dr. Muhammad Farooq
+  Course     : Medical Image Computing
+================================================
+
 Stage 3: Fine-tune Stable Diffusion v1-5 on BUSI and generate synthetic images.
 
 Steps:

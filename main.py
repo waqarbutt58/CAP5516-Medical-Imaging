@@ -1,5 +1,15 @@
 """
-CAP5516 – Multi-task Medical Image Analysis with Diffusion-Based Synthetic Augmentation
+================================================
+  Medical Image Computing — Self Study Project
+================================================
+  Title      : Multi-task Medical Image Analysis with
+               Diffusion-Based Synthetic Augmentation
+  Student    : Waqar Rauf Butt
+  Roll No    : PHDAIF25M003
+  Supervisor : Dr. Muhammad Farooq
+  Course     : Medical Image Computing
+================================================
+
 Main pipeline script. Run each stage independently or end-to-end.
 
 Usage:
