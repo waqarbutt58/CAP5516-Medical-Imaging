@@ -117,13 +117,14 @@ def plot_eda(data_dir: str, save_path: str = "results/eda.png"):
     label_names = {0: "Normal", 1: "Benign", 2: "Malignant"}
     counts = {label_names[l]: labels.count(l) for l in [0, 1, 2]}
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+    fig = plt.figure(figsize=(14, 4))
 
-    axes[0].bar(counts.keys(), counts.values(), color=["#4caf50", "#2196f3", "#f44336"])
-    axes[0].set_title("Class Distribution")
-    axes[0].set_ylabel("Number of Images")
+    ax_bar = fig.add_subplot(1, 4, 1)
+    ax_bar.bar(counts.keys(), counts.values(), color=["#4caf50", "#2196f3", "#f44336"])
+    ax_bar.set_title("Class Distribution")
+    ax_bar.set_ylabel("Number of Images")
     for k, v in zip(counts.keys(), counts.values()):
-        axes[0].text(k, v + 2, str(v), ha="center", fontweight="bold")
+        ax_bar.text(k, v + 2, str(v), ha="center", fontweight="bold")
 
     # Sample one image per class
     sample_imgs = []
@@ -133,7 +134,7 @@ def plot_eda(data_dir: str, save_path: str = "results/eda.png"):
 
     for i, (img_path, cls_name) in enumerate(sample_imgs):
         img = np.array(Image.open(img_path).convert("L"))
-        ax = fig.add_subplot(1, 5, i + 3)
+        ax = fig.add_subplot(1, 4, i + 2)
         ax.imshow(img, cmap="gray")
         ax.set_title(cls_name, fontsize=9)
         ax.axis("off")
