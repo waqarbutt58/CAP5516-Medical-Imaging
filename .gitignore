@@ -1,0 +1,45 @@
+# Data (too large for git)
+data/BUSI/
+data/synthetic/
+
+# Model checkpoints
+models/
+!models/.gitkeep
+
+# Results (generated)
+results/
+!results/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+cap5516_env/
+.env
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Weights & Biases
+wandb/
