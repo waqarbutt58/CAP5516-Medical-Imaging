@@ -2,13 +2,11 @@
 data/BUSI/
 data/synthetic/
 
-# Model checkpoints
-models/
-!models/.gitkeep
+# Model checkpoints (large files — keep .pth files tracked)
+# models/
 
-# Results (generated)
-results/
-!results/.gitkeep
+# Results (generated — keep plots tracked)
+# results/
 
 # Python
 __pycache__/
@@ -43,3 +41,6 @@ Thumbs.db
 
 # Weights & Biases
 wandb/
+
+# Large model weights
+*.pth
