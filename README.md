@@ -69,7 +69,25 @@ BUSI Dataset (798 images + masks)
 | Malignant | 0.93 | 0.84 | 0.88 | 31 |
 | **Overall** | **0.90** | **0.90** | **0.90** | **120** |
 
-> Ablation study results (synthetic data ratios 0–100%) to be added after Stage 4.
+### Diffusion Augmentation & Synthetic Quality
+
+| Metric | Value |
+|---|---|
+| **SD Fine-tuning** | 3 epochs on 798 BUSI images |
+| **Synthetic Images Generated** | 450 (150 × normal / benign / malignant) |
+| **FID Score** | **218.79** (real ↔ synthetic; lower = more realistic) |
+
+### Ablation Study — Synthetic Data Ratio vs Classifier Performance
+
+| Synthetic Ratio | Real Images | Total Training | Best Val Acc |
+|---|---|---|---|
+| **0% (baseline)** | 558 | 558 | **0.900** |
+| 25% | 558 | ~698 | 0.805 |
+| 50% | 558 | ~837 | 0.788 |
+| 75% | 558 | ~977 | 0.744 |
+| 100% | 558 | 1248 | 0.772 |
+
+> **Finding:** Real-only training achieved the highest accuracy (0.90). This is expected with a 3-epoch fine-tuned diffusion model on a small medical dataset — synthetic image quality (FID=218.79) was not yet sufficient to consistently improve classifier performance. Longer diffusion fine-tuning (20+ epochs) would likely close this gap.
 
 ---
 
@@ -186,7 +204,8 @@ Trains U-Net segmentation and ResNet-50 classifier. Saves best checkpoints to `m
 
 ### Stage 3 – Diffusion Augmentation
 ```bash
-python train_diffusion.py --epochs 20 --batch 4 --n_per_class 150 --fid
+python train_diffusion.py --epochs 3 --batch 2 --img_size 256 --n_per_class 150 --fid
+# Note: batch=2 and img_size=256 required for 8GB VRAM GPUs
 ```
 Fine-tunes Stable Diffusion v1.5 on BUSI, generates 150 synthetic images per class (450 total), computes FID score.
 
@@ -277,11 +296,11 @@ Synthetic images added at 5 ratios on top of the real training set:
 | Stage | Status | Key Metric |
 |---|---|---|
 | ✅ EDA & Preprocessing | Complete | 798 images loaded, splits verified |
-| ✅ U-Net Baseline | Complete | Test Dice = 0.7186 |
+| ✅ U-Net Baseline | Complete | Test Dice = 0.7186, Val Dice = 0.7841 |
 | ✅ ResNet-50 Baseline | Complete | Test AUC = 0.9722, Acc = 90% |
-| 🔄 Diffusion Fine-tuning | In Progress | SD v1.5 fine-tuning on BUSI |
-| ⏳ Ablation Study | Pending | — |
-| ⏳ Grad-CAM + Report | Pending | — |
+| ✅ Diffusion Fine-tuning | Complete | 3 epochs, 450 synthetic images, FID = 218.79 |
+| ✅ Ablation Study | Complete | Real-only best @ Acc = 0.900 |
+| ✅ Grad-CAM + PDF Report | Complete | 15 heatmaps, clinical_report.pdf |
 
 ---
 
