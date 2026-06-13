@@ -82,7 +82,7 @@ def load_busi_dataset(data_dir: str):
     return image_paths, mask_paths, labels
 
 
-def create_dataloaders(data_dir, img_size=256, batch_size=16, seed=42):
+def create_dataloaders(data_dir, img_size=256, batch_size=16, seed=42, num_workers=2):
     imgs, masks, labels = load_busi_dataset(data_dir)
 
     idx = list(range(len(imgs)))
@@ -106,9 +106,9 @@ def create_dataloaders(data_dir, img_size=256, batch_size=16, seed=42):
     test_ds = subset(test_idx, augment=False)
 
     return {
-        "train": DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True),
-        "val": DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True),
-        "test": DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True),
+        "train": DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True),
+        "val": DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True),
+        "test": DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True),
     }
 
 
