@@ -79,13 +79,13 @@ BUSI Dataset (798 images + masks)
 
 ### Ablation Study — Synthetic Data Ratio vs Classifier Performance
 
-| Synthetic Ratio | Real Images | Total Training | Best Val Acc |
-|---|---|---|---|
-| **0% (baseline)** | 558 | 558 | **0.900** |
-| 25% | 558 | ~698 | 0.805 |
-| 50% | 558 | ~837 | 0.788 |
-| 75% | 558 | ~977 | 0.744 |
-| 100% | 558 | 1248 | 0.772 |
+| Synthetic Ratio | Real Images | Total Training | Best Val AUC | Best Val Acc |
+|---|---|---|---|---|
+| **0% (baseline)** | 558 | 558 | **0.9666** | **0.900** |
+| 25% | 558 | ~698 | 0.9126 | 0.805 |
+| 50% | 558 | ~837 | 0.9042 | 0.788 |
+| 75% | 558 | ~977 | 0.8965 | 0.744 |
+| 100% | 558 | 1248 | 0.8769 | 0.772 |
 
 > **Finding:** Real-only training achieved the highest accuracy (0.90). This is expected with a 3-epoch fine-tuned diffusion model on a small medical dataset — synthetic image quality (FID=218.79) was not yet sufficient to consistently improve classifier performance. Longer diffusion fine-tuning (20+ epochs) would likely close this gap.
 

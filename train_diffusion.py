@@ -148,10 +148,10 @@ def compute_fid_score():
 
 def main():
     parser = argparse.ArgumentParser(description="Diffusion Augmentation Pipeline")
-    parser.add_argument("--epochs",       type=int,   default=20,   help="Fine-tune epochs")
-    parser.add_argument("--batch",        type=int,   default=4,    help="Batch size (keep low, SD is large)")
+    parser.add_argument("--epochs",       type=int,   default=3,    help="Fine-tune epochs (3 recommended for 8GB VRAM)")
+    parser.add_argument("--batch",        type=int,   default=2,    help="Batch size (2 required for 8GB VRAM)")
     parser.add_argument("--lr",           type=float, default=1e-5, help="Learning rate")
-    parser.add_argument("--img_size",     type=int,   default=512,  help="Training image size for SD")
+    parser.add_argument("--img_size",     type=int,   default=256,  help="Training image size for SD (256 for 8GB VRAM)")
     parser.add_argument("--n_per_class",  type=int,   default=150,  help="Synthetic images to generate per class")
     parser.add_argument("--guidance",     type=float, default=7.5,  help="Classifier-free guidance scale")
     parser.add_argument("--steps",        type=int,   default=30,   help="Denoising inference steps")

@@ -74,7 +74,7 @@ def stage_baseline(loaders=None):
 def stage_diffusion():
     print("\n[Stage 3] Diffusion Augmentation")
     from src.diffusion_augment import fine_tune_sd_on_busi, generate_synthetic_images
-    fine_tune_sd_on_busi(DATA_DIR, output_dir=SD_OUTPUT_DIR, n_epochs=20, batch_size=4)
+    fine_tune_sd_on_busi(DATA_DIR, output_dir=SD_OUTPUT_DIR, n_epochs=3, batch_size=2, img_size=256)
     generate_synthetic_images(SD_OUTPUT_DIR, n_per_class=150, output_dir=SYNTHETIC_DIR)
 
 
