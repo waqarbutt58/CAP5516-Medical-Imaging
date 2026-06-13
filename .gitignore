@@ -44,3 +44,7 @@ wandb/
 
 # Large model weights
 *.pth
+
+# Logs
+*.log
+*_err.log

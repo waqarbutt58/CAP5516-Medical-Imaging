@@ -21,27 +21,31 @@ MODEL_ID = "runwayml/stable-diffusion-v1-5"
 
 def fine_tune_sd_on_busi(data_dir: str, output_dir: str,
                           n_epochs: int = 20, lr: float = 1e-5,
-                          batch_size: int = 4, img_size: int = 512):
-    """Fine-tune Stable Diffusion v1-5 U-Net on BUSI using denoising loss."""
+                          batch_size: int = 2, img_size: int = 256):
+    """Fine-tune Stable Diffusion v1-5 U-Net on BUSI using denoising loss.
+    Uses float16 + attention slicing to fit within 8GB VRAM.
+    """
     from diffusers import StableDiffusionPipeline, DDPMScheduler
-    from torch.cuda.amp import GradScaler, autocast
     from src.dataset import load_busi_dataset, BUSIDataset
     from torch.utils.data import DataLoader
 
     print(f"Loading {MODEL_ID} ...")
     pipe = StableDiffusionPipeline.from_pretrained(
         MODEL_ID,
-        torch_dtype=torch.float32,
+        torch_dtype=torch.float16,   # float16 — essential for 8GB VRAM
         safety_checker=None,
     )
     pipe = pipe.to("cuda")
+    pipe.enable_attention_slicing()  # reduces peak VRAM by ~20%
 
     # Freeze VAE + text encoder — only train U-Net
     pipe.vae.requires_grad_(False)
     pipe.text_encoder.requires_grad_(False)
     pipe.unet.requires_grad_(True)
+    # Cast U-Net to float32 for stable gradient updates
+    pipe.unet = pipe.unet.to(torch.float32)
 
-    # Enable memory-efficient attention if xformers available
+    # Enable xformers if available
     try:
         pipe.unet.enable_xformers_memory_efficient_attention()
         print("  xformers memory-efficient attention enabled.")
@@ -50,28 +54,27 @@ def fine_tune_sd_on_busi(data_dir: str, output_dir: str,
 
     optimizer = AdamW(pipe.unet.parameters(), lr=lr)
     noise_scheduler = DDPMScheduler.from_pretrained(MODEL_ID, subfolder="scheduler")
-    scaler = GradScaler()
+    scaler = torch.amp.GradScaler("cuda")
 
     imgs, masks, labels = load_busi_dataset(data_dir)
     dataset = BUSIDataset(imgs, masks, labels, img_size=img_size, augment=True)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                        num_workers=2, pin_memory=True)
+                        num_workers=0, pin_memory=False)
 
-    print(f"Fine-tuning on {len(dataset)} images for {n_epochs} epochs...")
+    print(f"Fine-tuning on {len(dataset)} images for {n_epochs} epochs "
+          f"(batch={batch_size}, img_size={img_size})...")
     pipe.unet.train()
 
     for epoch in range(n_epochs):
         epoch_loss = 0.0
         for step, (batch_imgs, _, batch_labels) in enumerate(loader):
-            batch_imgs = batch_imgs.to("cuda")
-            prompts = [LABEL_TO_PROMPT[l.item()] for l in batch_labels]
-
-            # Encode images → latent space
+            # Encode images → latent space (float16 VAE)
+            batch_imgs_fp16 = batch_imgs.to("cuda", dtype=torch.float16)
             with torch.no_grad():
-                latents = pipe.vae.encode(batch_imgs).latent_dist.sample()
+                latents = pipe.vae.encode(batch_imgs_fp16).latent_dist.sample()
                 latents = latents * pipe.vae.config.scaling_factor
+                latents = latents.to(torch.float32)  # switch to float32 for training
 
-            # Sample noise and timesteps
             noise = torch.randn_like(latents)
             timesteps = torch.randint(
                 0, noise_scheduler.config.num_train_timesteps,
@@ -80,6 +83,7 @@ def fine_tune_sd_on_busi(data_dir: str, output_dir: str,
             noisy_lat = noise_scheduler.add_noise(latents, noise, timesteps)
 
             # Encode text prompts
+            prompts = [LABEL_TO_PROMPT[l.item()] for l in batch_labels]
             with torch.no_grad():
                 tokens = pipe.tokenizer(
                     prompts, return_tensors="pt",
@@ -87,15 +91,17 @@ def fine_tune_sd_on_busi(data_dir: str, output_dir: str,
                     max_length=pipe.tokenizer.model_max_length,
                     truncation=True
                 ).to("cuda")
-                enc_text = pipe.text_encoder(**tokens).last_hidden_state
+                enc_text = pipe.text_encoder(
+                    **{k: v for k, v in tokens.items()}
+                ).last_hidden_state.to(torch.float32)
 
-            # Predict noise with mixed precision
-            with autocast():
+            # Predict noise
+            with torch.amp.autocast("cuda"):
                 noise_pred = pipe.unet(
                     noisy_lat, timesteps,
                     encoder_hidden_states=enc_text
                 ).sample
-                loss = F.mse_loss(noise_pred, noise)
+                loss = F.mse_loss(noise_pred.float(), noise.float())
 
             optimizer.zero_grad()
             scaler.scale(loss).backward()
@@ -103,8 +109,12 @@ def fine_tune_sd_on_busi(data_dir: str, output_dir: str,
             scaler.update()
             epoch_loss += loss.item()
 
+            if (step + 1) % 50 == 0:
+                print(f"  Epoch {epoch+1}/{n_epochs} | Step {step+1} | "
+                      f"Loss: {loss.item():.4f}")
+
         avg_loss = epoch_loss / len(loader)
-        print(f"Epoch {epoch+1}/{n_epochs} | Loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch+1}/{n_epochs} | Avg Loss: {avg_loss:.4f}")
 
     os.makedirs(output_dir, exist_ok=True)
     pipe.save_pretrained(output_dir)
@@ -124,6 +134,7 @@ def generate_synthetic_images(pipe_dir: str, n_per_class: int = 150,
         torch_dtype=torch.float16,
         safety_checker=None,
     ).to("cuda")
+    pipe.enable_attention_slicing()
 
     for class_name, prompt in CLASS_PROMPTS.items():
         class_dir = os.path.join(output_dir, class_name)
@@ -139,10 +150,12 @@ def generate_synthetic_images(pipe_dir: str, n_per_class: int = 150,
                 guidance_scale=guidance_scale,
                 height=256, width=256,
             )
-            img = result.images[0].convert("L")  # grayscale like real BUSI
+            img = result.images[0].convert("L")
             img.save(os.path.join(class_dir, f"synthetic_{i:04d}.png"))
 
-    print(f"Synthetic images saved to: {output_dir}")
+        print(f"    Saved {n_per_class} [{class_name}] images.")
+
+    print(f"All synthetic images saved to: {output_dir}")
 
 
 def compute_fid(real_dir: str, synthetic_dir: str, device: str = "cuda"):
